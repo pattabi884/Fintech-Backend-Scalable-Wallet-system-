@@ -22,7 +22,7 @@ A high-performance, distributed banking backend built with **Node.js, TypeScript
 
 ## 🏗️ Architecture Flow
 
-```mermaid
+
 graph TD
     User[Merchant / API] -->|POST /deposit| API[Express API]
     API -->|Push Job| Redis[(Redis Queue)]
