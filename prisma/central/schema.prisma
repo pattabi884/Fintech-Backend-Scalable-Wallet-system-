@@ -1,0 +1,59 @@
+// prisma/central.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  // FIXED: ../../ (Up two levels: central -> prisma -> root)
+  output   = "../../node_modules/@prisma/central-client"
+  previewFeatures = ["driverAdapters"]
+}
+// ... rest of file
+datasource db {
+  provider = "postgresql"
+ 
+}
+
+// --- IDENTITY TABLES ---
+
+model Merchant {
+  id        Int      @id @default(autoincrement()) // Standard 32-bit
+  name      String
+  email     String   @unique
+  phoneNo   String   @map("phone_no")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  vams      VAM[]
+}
+
+model VAM {
+  id         Int      @id @default(autoincrement())
+  merchantId Int      @map("merchant_id")
+  vamId      String   @unique @map("vam_id") // Business ID for the VAM
+  pwd        String   @db.VarChar(12)        // Restricted to 12 chars
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  merchant   Merchant @relation(fields: [merchantId], references: [id])
+}
+
+// --- REPORTING / ANALYTICS TABLES ---
+// populated asynchronously or via dual-write
+
+model AllTransactions {
+  id        Int      @id @default(autoincrement())
+  amount    Decimal  @db.Decimal(18, 2) // Money should use Decimal, not Float
+  type      String
+  irn       String   @unique // Global lookup for IRN
+  shardId   Int      // Good for tracking origin
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+model AllLedger {
+  id        Int      @id @default(autoincrement())
+  irn       String   @unique 
+  amount    Decimal  @db.Decimal(18, 2)
+  type      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}

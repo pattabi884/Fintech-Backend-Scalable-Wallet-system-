@@ -1,0 +1,36 @@
+{
+  "name": "wallet-sharding",
+  "version": "1.0.0",
+  "main": "dist/src/app.js",
+  "scripts": {
+    "test": "npx tsx test-flow.ts",
+    "generate:central": "npx prisma generate --schema=./prisma/central/schema.prisma",
+    "generate:shard": "npx prisma generate --schema=./prisma/shards/schema.prisma",
+    "generate:all": "npm run generate:central && npm run generate:shard",
+    "migrate:central": "npx dotenv -e .env -- npx prisma migrate dev --schema=./prisma/central/schema.prisma --name init_central",
+    "migrate:shard:create": "npx dotenv -e .env.shard0 -- npx prisma migrate dev --schema=./prisma/shards/schema.prisma --name init_shards",
+    "migrate:shard:apply:1": "npx dotenv -e .env.shard1 -- npx prisma migrate deploy --schema=./prisma/shards/schema.prisma",
+    "migrate:all": "npm run migrate:central && npm run migrate:shard:create && npm run migrate:shard:apply:1"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "latest",
+    "@prisma/client": "latest",
+    "axios": "^1.13.2",
+    "bullmq": "latest",
+    "dotenv": "latest",
+    "express": "latest",
+    "ioredis": "latest",
+    "pg": "latest",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "latest",
+    "@types/node": "latest",
+    "@types/pg": "latest",
+    "@types/uuid": "^10.0.0",
+    "dotenv-cli": "latest",
+    "prisma": "latest",
+    "tsx": "latest",
+    "typescript": "latest"
+  }
+}

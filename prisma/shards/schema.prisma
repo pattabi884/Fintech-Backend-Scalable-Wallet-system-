@@ -1,0 +1,46 @@
+// prisma/shard.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  // FIXED: ../../ (Up two levels: shards -> prisma -> root)
+  output   = "../../node_modules/@prisma/shard-client" 
+  previewFeatures = ["driverAdapters"]
+}
+// ... rest of file
+datasource db {
+  provider = "postgresql"
+  // We leave this generic. In code, we will swap the URL dynamically.
+   
+}
+
+model Wallet {
+  id               Int      @id @default(autoincrement())
+  merchantId       Int      @map("merchant_id") // Link to Central Merchant
+  vamId            String   @map("vam_id")      // Link to Central VAM
+  
+  availableBalance Decimal  @default(0.00) @map("available_balance") @db.Decimal(18, 2)
+  mainBalance      Decimal  @default(0.00) @map("main_balance") @db.Decimal(18, 2)
+  
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+}
+
+model Transaction {
+  id        Int      @id @default(autoincrement())
+  amount    Decimal  @db.Decimal(18, 2)
+  type      String   // DEPOSIT, WITHDRAWAL
+  irn       String   @unique // Idempotency Internal Reference Number
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+model Ledger {
+  id        Int      @id @default(autoincrement())
+  irn       String   @unique // Links back to Transaction
+  amount    Decimal  @db.Decimal(18, 2)
+  type      String
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}

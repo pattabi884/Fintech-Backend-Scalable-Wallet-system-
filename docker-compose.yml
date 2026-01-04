@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # --- 1. THE APP (Restored!) ---
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+      - central-db
+      - shard0-db
+      - shard1-db
+    env_file:
+      - .env.docker
+    restart: on-failure
+
+  # --- 2. REDIS ---
+  redis:
+    image: redis:alpine
+    ports:
+      - "6380:6379" # Safe Port (Local 6380 -> Container 6379)
+
+  # --- 3. CENTRAL DATABASE ---
+  central-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: central_db
+    ports:
+      - "6432:5432" # Safe Port (Local 6432 -> Container 5432)
+
+  # --- 4. SHARD 0 DATABASE ---
+  shard0-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: shard0_db
+    ports:
+      - "6433:5432" # Safe Port (Local 6433 -> Container 5432)
+
+  # --- 5. SHARD 1 DATABASE ---
+  shard1-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: shard1_db
+    ports:
+      - "6434:5432" # Safe Port (Local 6434 -> Container 5432)
