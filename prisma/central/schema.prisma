@@ -9,9 +9,9 @@ generator client {
 // ... rest of file
 datasource db {
   provider = "postgresql"
- 
+  // 👇 THIS LINE IS MISSING! ADD IT BACK.
+  url      = env("DATABASE_URL")
 }
-
 // --- IDENTITY TABLES ---
 
 model Merchant {

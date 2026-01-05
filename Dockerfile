@@ -1,34 +1,27 @@
-FROM node:20-alpine
+# Use Standard Node (Debian)
+FROM node:18
 
 WORKDIR /app
 
-# 1. Copy everything
-COPY . .
-
-# 2. Nuclear Clean (Ensure no Windows files remain)
-RUN rm -rf node_modules dist
-
-# 3. Install
+# 1. Install Dependencies
+COPY package*.json ./
+COPY prisma ./prisma/
 RUN npm install
 
-# 4. Generate
-RUN npm run generate:all
+# 2. Copy Source Code
+COPY . .
 
-# --- 🕵️ SPY SECTION START ---
-# A. Check if the folder exists at all
-RUN echo "=== 📂 SPY: Listing @prisma folder ===" && \
-    ls -R node_modules/@prisma || echo "❌ @prisma folder missing"
+# 3. Generate Prisma Clients
+# We use ENV variables to ensure the schema validates correctly during build.
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+ENV SHARD_0_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+ENV SHARD_1_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 
-# B. Check if central-client exists and list its contents
-RUN echo "=== 📂 SPY: Listing central-client ===" && \
-    ls -la node_modules/@prisma/central-client || echo "❌ central-client missing"
+# Force removal of any rogue .env file and run generation
+RUN rm -f .env && npm run prisma:generate:all
 
-# C. Read the package.json to see how it defines itself
-RUN echo "=== 📜 SPY: Reading package.json ===" && \
-    cat node_modules/@prisma/central-client/package.json || echo "❌ package.json missing"
-# --- 🕵️ SPY SECTION END ---
+# 4. Build TypeScript
+RUN npm run build
 
-# 5. Build (This will fail, but we will see the logs above it)
-RUN npx tsc --skipLibCheck
-
+EXPOSE 3000
 CMD ["node", "dist/src/app.js"]

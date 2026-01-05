@@ -9,8 +9,8 @@ generator client {
 // ... rest of file
 datasource db {
   provider = "postgresql"
-  // We leave this generic. In code, we will swap the URL dynamically.
-   
+  // 👇 THIS LINE IS MISSING HERE TOO?
+  url      = env("DATABASE_URL") 
 }
 
 model Wallet {

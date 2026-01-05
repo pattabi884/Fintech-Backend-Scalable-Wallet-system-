@@ -1,36 +1,44 @@
 {
-  "name": "wallet-sharding",
+  "name": "wallet-sharding-project",
   "version": "1.0.0",
   "main": "dist/src/app.js",
   "scripts": {
-    "test": "npx tsx test-flow.ts",
-    "generate:central": "npx prisma generate --schema=./prisma/central/schema.prisma",
-    "generate:shard": "npx prisma generate --schema=./prisma/shards/schema.prisma",
-    "generate:all": "npm run generate:central && npm run generate:shard",
-    "migrate:central": "npx dotenv -e .env -- npx prisma migrate dev --schema=./prisma/central/schema.prisma --name init_central",
-    "migrate:shard:create": "npx dotenv -e .env.shard0 -- npx prisma migrate dev --schema=./prisma/shards/schema.prisma --name init_shards",
-    "migrate:shard:apply:1": "npx dotenv -e .env.shard1 -- npx prisma migrate deploy --schema=./prisma/shards/schema.prisma",
-    "migrate:all": "npm run migrate:central && npm run migrate:shard:create && npm run migrate:shard:apply:1"
+    "build": "npx tsc",
+    "start": "node dist/src/app.js",
+    "dev": "npx tsx watch src/app.ts",
+    
+    "prisma:generate:all": "npm run prisma:gen:central && npm run prisma:gen:shards",
+    "prisma:gen:central": "npx prisma generate --schema=./prisma/central/schema.prisma",
+    "prisma:gen:shards": "npm run prisma:gen:s0 && npm run prisma:gen:s1",
+    
+    "prisma:gen:s0": "cross-env DATABASE_URL=postgresql://postgres:password123@localhost:6433/shard0_db?schema=public npx prisma generate --schema=./prisma/shards/schema.prisma",
+    "prisma:gen:s1": "cross-env DATABASE_URL=postgresql://postgres:password123@localhost:6434/shard1_db?schema=public npx prisma generate --schema=./prisma/shards/schema.prisma",
+    
+    "prisma:push:central": "npx prisma db push --schema=./prisma/central/schema.prisma",
+    "prisma:push:shards": "npm run prisma:push:s0 && npm run prisma:push:s1",
+    "prisma:push:s0": "cross-env DATABASE_URL=postgresql://postgres:password123@localhost:6433/shard0_db?schema=public npx prisma db push --schema=./prisma/shards/schema.prisma",
+    "prisma:push:s1": "cross-env DATABASE_URL=postgresql://postgres:password123@localhost:6434/shard1_db?schema=public npx prisma db push --schema=./prisma/shards/schema.prisma"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "latest",
-    "@prisma/client": "latest",
-    "axios": "^1.13.2",
-    "bullmq": "latest",
-    "dotenv": "latest",
-    "express": "latest",
-    "ioredis": "latest",
-    "pg": "latest",
-    "uuid": "^13.0.0"
+    "@prisma/adapter-pg": "^5.10.2",
+    "@prisma/client": "^5.10.2",
+    "axios": "^1.6.0",
+    "bullmq": "^5.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.3",
+    "pg": "^8.11.3",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@types/express": "latest",
-    "@types/node": "latest",
-    "@types/pg": "latest",
-    "@types/uuid": "^10.0.0",
-    "dotenv-cli": "latest",
-    "prisma": "latest",
-    "tsx": "latest",
-    "typescript": "latest"
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.24",
+    "@types/pg": "^8.11.2",
+    "@types/uuid": "^9.0.8",
+    "cross-env": "^7.0.3",
+    "prisma": "^5.10.2",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.7.1",
+    "typescript": "^5.3.3"
   }
 }
