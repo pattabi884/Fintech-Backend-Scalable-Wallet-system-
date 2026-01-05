@@ -5,7 +5,9 @@ A high-performance, distributed banking backend built with **Node.js, TypeScript
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED)
+## ⚡ Ready to Run?
 
+For setup instructions and demo commands, please read the [Quick Start Guide](QUICKSTART.md).
 ## 🚀 Key Engineering Patterns
 
 * **Horizontal Scaling (Sharding):** User data is mechanically split across multiple PostgreSQL instances based on Merchant ID (Modulo Routing).
