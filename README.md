@@ -42,8 +42,7 @@ graph TD
     end
 
     WebhookQ -->|Notify| MerchantServer["Merchant Webhook"]
-
-    ⚡ Quick Start (Run Everywhere)This project uses a Split-Network Configuration to run seamlessly on any machine without installing local databases.PrerequisitesDocker Desktop & Docker ComposeNode.js (v18+)1. Clone & InstallBashgit clone https://github.com/your-username/sharded-wallet-backend.git
+⚡ Quick Start (Run Everywhere)This project uses a Split-Network Configuration to run seamlessly on any machine without installing local databases.PrerequisitesDocker Desktop & Docker ComposeNode.js (v18+)1. Clone & InstallBashgit clone [https://github.com/your-username/sharded-wallet-backend.git](https://github.com/your-username/sharded-wallet-backend.git)
 cd sharded-wallet-backend
 npm install
 2. Configure EnvironmentCreate two environment files in the root directory:File 1: .env (For Local Scripts)Used by your terminal to connect to exposed ports.Code snippetDATABASE_URL="postgresql://postgres:password123@localhost:6432/central_db?schema=public"
