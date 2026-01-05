@@ -1,28 +1,31 @@
-# 🏦 Scalable Fintech Backend (Sharded & Event-Driven)
+# 🏦 Sharded Wallet System (Fintech Backend)
 
-A high-performance, distributed banking backend built with **Node.js, TypeScript, and PostgreSQL**. This system implements **Database Sharding** to handle massive scale, uses **Redis** for asynchronous event processing, and ensures financial consistency with **Idempotency** and **Dual-Write** patterns.
+A high-performance, distributed banking backend built with **Node.js, TypeScript, and Docker**. This system demonstrates **Database Sharding**, **Event-Driven Architecture**, and **Idempotency** handling to process financial transactions at scale.
 
-## 🚀 Key Engineering Features
+![License](https://img.shields.io/badge/license-MIT-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED)
 
-* **Database Sharding:** Horizontally scales user data across multiple PostgreSQL instances based on `MerchantID`.
-* **Event-Driven Architecture:** Decouples API ingestion from processing using **Redis queues (BullMQ)** for high throughput.
-* **Distributed Transactions:** Manages atomic operations across a Central Identity DB and isolated Shard DBs.
-* **Idempotency & Deduplication:** Prevents double-spending by tracking unique Transaction Request Numbers (IRN).
-* **Dual-Write Reporting:** Synchronizes high-speed shard transactions with a central ledger for analytics.
-* **Secure Webhooks:** Notifies merchants of transaction status using HMAC-SHA256 signed payloads.
+## 🚀 Key Engineering Patterns
+
+* **Horizontal Scaling (Sharding):** User data is mechanically split across multiple PostgreSQL instances based on Merchant ID (Modulo Routing).
+* **Dual-Client Architecture:** Custom-generated Prisma clients strictly separate "Identity Data" (Central DB) from "Transactional Data" (Shard DBs).
+* **Event-Driven Processing:** API ingestion is decoupled from execution using **BullMQ (Redis)** to handle traffic spikes without blocking.
+* **Idempotency & Deduplication:** Prevents double-spending using unique Transaction Reference Numbers (IRN).
+* **Containerized Environment:** Fully isolated infrastructure using Docker Compose with internal DNS resolution.
 
 ## 🛠️ Tech Stack
 
-* **Runtime:** Node.js, TypeScript
-* **Framework:** Express.js
-* **Databases:** PostgreSQL (Central + 2 Shards), Redis (Queues)
-* **ORM:** Prisma (Multi-schema management)
-* **Infrastructure:** Docker, Docker Compose
-* **Queues:** BullMQ
+* **Runtime:** Node.js v18 (Alpine Linux)
+* **Language:** TypeScript
+* **Database:** PostgreSQL (1 Central + 2 Shards)
+* **Caching/Queues:** Redis
+* **ORM:** Prisma (Multi-Schema Support)
+* **Infrastructure:** Docker & Docker Compose
 
 ## 🏗️ Architecture Flow
 
-
+```mermaid
 graph TD
     User[Merchant / API] -->|POST /deposit| API[Express API]
     API -->|Push Job| Redis[(Redis Queue)]
@@ -37,74 +40,37 @@ graph TD
         Worker -->|3. Sync Ledger| CentralDB
         Worker -->|4. Trigger Hook| WebhookQ[(Webhook Queue)]
     end
-    
     WebhookQ -->|Notify| MerchantServer[Merchant Webhook]
-⚡ Quick Start
-Prerequisites
-Docker & Docker Compose
-
-Node.js (v18+)
-
-1. Installation
-Clone the repo and install dependencies:
-
-Bash
-
-git clone [https://github.com/yourusername/wallet-sharding-project.git](https://github.com/yourusername/wallet-sharding-project.git)
-cd wallet-sharding-project
+⚡ Quick Start (Run Everywhere)This project uses a Split-Network Configuration to run seamlessly on any machine without installing local databases.PrerequisitesDocker Desktop & Docker ComposeNode.js (v18+)1. Clone & InstallBashgit clone [https://github.com/your-username/sharded-wallet-backend.git](https://github.com/your-username/sharded-wallet-backend.git)
+cd sharded-wallet-backend
 npm install
-2. Start Infrastructure
-Launch the database cluster (Central DB, Shards, Redis) and the API:
+2. Configure EnvironmentCreate two environment files in the root directory:File 1: .env (For Local Scripts)Used by your terminal to connect to exposed ports.Code snippetDATABASE_URL="postgresql://postgres:password123@localhost:6432/central_db?schema=public"
+SHARD_0_URL="postgresql://postgres:password123@localhost:6433/shard0_db?schema=public"
+SHARD_1_URL="postgresql://postgres:password123@localhost:6434/shard1_db?schema=public"
+REDIS_HOST="localhost"
+REDIS_PORT=6380
+File 2: .env.docker (For Containers)Used by the API inside Docker to talk to internal services.Code snippetDATABASE_URL="postgresql://postgres:password123@central-db:5432/central_db?schema=public"
+SHARD_0_URL="postgresql://postgres:password123@shard0-db:5432/shard0_db?schema=public"
+SHARD_1_URL="postgresql://postgres:password123@shard1-db:5432/shard1_db?schema=public"
+REDIS_HOST="redis"
+REDIS_PORT=6379
+3. Launch Infrastructure 🚀Start the API, 3 Databases, and Redis with one command:Bashdocker-compose up -d --build
+4. Initialize DatabasePush the schema to the running databases:Bash# Create tables in Central DB and Shards
+npm run prisma:push:central
+npm run prisma:push:shards
 
-Bash
-
-docker-compose up -d --build
-3. Generate Database Clients
-We use a custom script to generate Prisma clients for all 3 databases automatically:
-
-Bash
-
+# Generate Type Definitions
 npm run prisma:generate:all
-4. Run the Demo 🎬
-I have included a demo script that simulates a real merchant onboarding and processing transactions:
-
-Bash
-
-npx tsx demo_client.ts
-You will see the system create a user, assign them to a shard, and process a deposit in real-time.
-
-🔌 API Endpoints
-1. Onboard Merchant
-POST /api/merchant/onboard Creates identity in Central DB and a Wallet in the assigned Shard.
-
-JSON
-
-{
-  "name": "Tech Corp",
-  "email": "admin@techcorp.com",
-  "password": "pass"
-}
-2. Deposit Funds
-POST /api/transaction/deposit Asynchronous deposit. Returns 202 Accepted instantly.
-
-JSON
-
-{
-  "email": "admin@techcorp.com",
-  "amount": 1000
-}
-📂 Project Structure
-Plaintext
-
-src/
-├── config/         # Database & Redis connections
-├── controllers/    # API Request Handlers
-├── middlewares/    # Global Error Handling & Validation
+5. Run the DemoSimulate a real-world transaction flow (Onboard -> Deposit -> Check Balance):Bashnpx tsx demo_client.ts
+🔌 API ReferenceMethodEndpointDescriptionPOST/api/merchant/onboardCreate a new merchant (Auto-assigned to a shard)POST/api/transaction/depositAsync deposit request (Returns 202 Accepted)GET/api/merchant/:idFetch merchant details & balance📂 Project StructurePlaintextsrc/
+├── config/         # Database & Redis Connections (Singleton Patterns)
+├── controllers/    # Request Handlers
 ├── queues/         # BullMQ Producers
-├── routes/         # Express Route Definitions
-├── utils/          # Sharding Logic & Hashing Utils
-├── workers/        # Async Consumers (The heavy lifters)
+├── workers/        # BullMQ Consumers (Business Logic)
+├── repositories/   # Data Access Layer (Clean Architecture)
+├── utils/          # Sharding Logic (Modulo Hashing)
 └── app.ts          # Entry Point
+
 🛡️ Security & Reliability
 Async Error Handling: Centralized middleware catches failures without crashing the server.
 
