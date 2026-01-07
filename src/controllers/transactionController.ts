@@ -1,33 +1,45 @@
 import { Request, Response } from 'express';
-import { asyncHandler } from '../utils/asyncHandler.js';
-import { addTransactionJob } from '../queues/transactionQueue.js';
 import { v4 as uuidv4 } from 'uuid';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { AppError } from '../utils/AppError.js'; // 👈 Import your new custom error class
+import { addTransactionJob } from '../queues/transactionQueue.js';
 
 export const transactionController = {
+  /**
+   * POST /api/transaction/deposit
+   */
   deposit: asyncHandler(async (req: Request, res: Response) => {
     const { email, amount } = req.body;
-
-    // 1. Basic Validation
-    if (!email || !amount || amount <= 0) {
-      throw new Error('Missing fields'); // Or custom validation error
+    //INPUT VALIDATION
+    if (!email || !amount) {
+      throw new AppError('Missing required fields: email and amount', 400);
     }
 
-    // 2. Generate ID (Idempotency)
-    const irn = uuidv4();
+    if (amount <= 0) {
+      throw new AppError('Deposit amount must be a positive number', 400);
+    }
 
-    // 3. Add to Redis Queue
+   
+    const irn = `DEP-${uuidv4()}`;
+
+   
     await addTransactionJob({
       type: 'DEPOSIT',
       email,
-      amount,
+      amount: Number(amount), 
       irn
     });
 
-    // 4. Return Accepted (202)
+    console.log(` Controller: Received Deposit request ${irn} for ${email}`);
+
     res.status(202).json({
-      message: 'Transaction accepted for processing',
       status: 'PENDING',
-      irn
+      message: 'Transaction accepted for processing',
+      data: {
+        transactionId: irn,
+        amount,
+        recipient: email
+      }
     });
   })
 };

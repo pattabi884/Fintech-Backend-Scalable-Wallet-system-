@@ -6,7 +6,7 @@ import merchantRoutes from './routes/merchantRoutes.js';
 import transactionRoutes from './routes/transactionRoutes.js';
 
 // Import Middleware
-import { globalErrorHandler } from './middlewares/errorMiddleware.js';
+import { globalErrorHandler } from './middlewares/globalErrorHandler.js';
 
 // Import Workers
 import { startTransactionWorker } from './workers/transactionWorker.js';
